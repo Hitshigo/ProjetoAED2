@@ -304,7 +304,7 @@ public class BinarySearchTree<K extends Comparable<K>, V>
     }                               
 
     public V insert( K key, V value ) {
-		BSTNode<K, V>  newNode = new BSTNode<>(key, value;
+		BSTNode<K, V>  newNode = new BSTNode<>(key, value);
 
         if (root == null) {//arvore estava vazia
         	//caso especial � inserir raiz
@@ -335,7 +335,7 @@ public class BinarySearchTree<K extends Comparable<K>, V>
 				parent.setLeft(newNode);
 			}
 
-			if(compResult < 0) {
+			if(compResult > 0) {
 				parent.setRight(newNode);
 			}
 			newNode.setParent(parent);
@@ -359,20 +359,21 @@ public class BinarySearchTree<K extends Comparable<K>, V>
     		if(currentSize == 1) {
     			V val = root.getValue();
     			root = null;
-    			currentSize--;
     			return val;
 			}
     		else if(numChildren(nodeToRemove) <= 1) {
     			if(nodeToRemove.equals(nodeParent.getLeft())) {
-					replaceParentWithChild(nodeToRemove, nodeLeft);
-					if(nodeToRemove.equals(root)) {
-						root = nodeLeft;
+    				if (nodeRight == null){
+    					replaceParentWithChild(nodeToRemove,nodeLeft);
+						if(nodeToRemove.equals(root)) {
+							root = nodeLeft;
+						}
 					}
-				}
-				else {
-					replaceParentWithChild(nodeToRemove, nodeRight);
-					if(nodeToRemove.equals(root)) {
-						root = nodeLeft;
+    				else{
+						replaceParentWithChild(nodeToRemove,nodeRight);
+						if(nodeToRemove.equals(root)) {
+							root = nodeRight;
+						}
 					}
 				}
 			}
@@ -408,11 +409,11 @@ public class BinarySearchTree<K extends Comparable<K>, V>
     		 *return ...  (nao esquecer o currentSize)
     		 */
 			currentSize--;
+			return nodeToRemove.getValue();
     	}
-    	else { //n�o encontra n� para remover
-			//return ...
+    	else {
+			return null;
 		}
-    	return null;
     }
     
   
@@ -425,8 +426,35 @@ public class BinarySearchTree<K extends Comparable<K>, V>
     {
         //TODO: Original comentado para nao dar erro de compilacao.
         // return new BSTKeyOrderIterator<K,V>(root);
-        return null;
+		Stack<BSTNode<K, V>> stack = new StackInArray<BSTNode<K, V>>(size());
+		DoublyLinkedList<Entry<K,V>> linkedList = new DoublyLinkedList<Entry<K,V>>();
+		stack.push(root);
+		if (linkedList.size() == size()){
+			return linkedList.iterator();
+		}
+		return auxIterator(stack,linkedList,root).iterator();
     }
+
+    private DoublyLinkedList<Entry<K,V>> auxIterator(Stack<BSTNode<K, V>> stack,DoublyLinkedList<Entry<K,V>> linkedList,BSTNode<K,V> node){
+		if (linkedList.size() == size()){
+			return linkedList;
+		}
+		if (node.getLeft() != null && linkedList.find(node.getLeft().getEntry()) == -1 ){
+			stack.push(node.getLeft());
+			return auxIterator(stack, linkedList, node.getLeft());
+		}
+		if((node.getLeft() == null || linkedList.find(node.getLeft().getEntry()) != -1 ) && node.getRight() != null && linkedList.find(node.getLeft().getEntry()) == -1 ){
+			stack.push(node.getRight());
+			return auxIterator(stack, linkedList, node.getRight());
+		}
+		else{
+			linkedList.addLast(stack.pop().getEntry());
+			BSTNode<K, V> aux = stack.pop();
+			linkedList.addLast(aux.getEntry());
+			return auxIterator(stack, linkedList, aux);
+		}
+
+	}
 
 	private BSTNode<K, V> findPlaceToInsert(BSTNode<K, V> node, K key) {
     	if(node == null) {
@@ -450,17 +478,13 @@ public class BinarySearchTree<K extends Comparable<K>, V>
 
 	private void replaceParentWithChild(BSTNode<K, V> nodeToRemove, BSTNode<K, V> child) {
     	BSTNode<K, V> nodeParent = nodeToRemove.getParent();
-    	BSTNode<K, V> nodeLeft = nodeToRemove.getLeft();
-		BSTNode<K, V> nodeRight = nodeToRemove.getRight();
-
-		if(child.equals(nodeLeft)) {
+		if(nodeParent.getLeft().equals(nodeToRemove)) {
 			nodeParent.setLeft(child);
 		}
 		else {
 			nodeParent.setRight(child);
 		}
 		child.setParent(nodeParent);
-
 	}
 }
 
